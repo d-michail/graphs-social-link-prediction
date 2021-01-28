@@ -6,13 +6,6 @@ sudo apt update
 sudo apt install redis-server
 ```
 
-Open file `/etc/redis/redis.conf` and change the `supervised` directive to `systemd`. 
-Then start using 
-
-```
-sudo systemctl restart redis.service
-```
-
 # Install redis graph
 
 ```
@@ -21,12 +14,19 @@ git clone --recurse-submodules -j8 https://github.com/RedisGraph/RedisGraph.git
 make
 ```
 
-The binary will be at `src/redisgraph.so`. Load it by opening `/etc/redis/redis.conf` 
-and adding a line like: 
+The binary will be at `src/redisgraph.so`.
+
+# Start redis-server 
+
+Use 
 
 ```
-loadmodule /path/to/module/src/redisgraph.so
+redis-server --loadmodule redisgraph.so
 ```
+
+# Bulk loading a graph 
+
+See <https://github.com/redisgraph/redisgraph-bulk-loader>
 
 # Redis Graph examples 
 
