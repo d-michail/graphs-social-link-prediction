@@ -25,7 +25,8 @@ def main():
     print (rg.relationshipTypes())
     print (rg.propertyKeys())
 
-    query = """MATCH p = (s)-[]->(t) RETURN p"""
+    # Find all vertices which have degree > 100
+    query = """MATCH (m1:Member)-[:Friend]->(m2:Member) WITH m1, count(m2) as friends WHERE friends > 100 RETURN m1, friends"""
     result = rg.query(query)
 
     # Iterate through resultset

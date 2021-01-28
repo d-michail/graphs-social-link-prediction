@@ -14,23 +14,23 @@ import csv
 import gzip
 
 
-def main(ifilename, ofilename):
+def main(ifilename):
 
     print("Reading from gzip input file: {}".format(ifilename))
 
-    nodes_csv = "{}.nodes.csv.gz".format(ofilename)
-    edges_csv = "{}.edges.csv.gz".format(ofilename)
+    nodes_csv = "Member.csv"
+    edges_csv = "Friend.csv"
 
-    print("Writing nodes to gzip output file: {}".format(nodes_csv))
-    print("Writing edges to gzip output file: {}".format(edges_csv))
+    print("Writing nodes to output file: {}".format(nodes_csv))
+    print("Writing edges to output file: {}".format(edges_csv))
 
     nodes = set()
 
-    with gzip.open(ifilename, "rt") as gzin, gzip.open(nodes_csv, "wt") as nodesout, gzip.open(
+    with gzip.open(ifilename, "rt") as gzin, open(nodes_csv, "wt") as nodesout, open(
         edges_csv, "wt"
     ) as edgesout:
-        nodesout.write(":ID(Node)\n")
-        edgesout.write(":START_ID(Node), :END_ID(Node)\n")
+        nodesout.write(":ID(Member)\n")
+        edgesout.write(":START_ID(Member), :END_ID(Member)\n")
         for line in gzin:
             if not line.startswith("#"):
                 fields = line.split()
@@ -55,12 +55,6 @@ def is_valid_input_file(parser, arg):
     return os.path.abspath(os.path.normpath(arg))
 
 
-def is_valid_output_file(parser, arg):
-    if os.path.exists(arg):
-        parser.error("The file %s already exists!" % arg)
-    return os.path.abspath(os.path.normpath(arg))
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Preprocess")
     parser.add_argument(
@@ -71,13 +65,5 @@ if __name__ == "__main__":
         metavar="FILE",
         type=lambda x: is_valid_input_file(parser, x),
     )
-    parser.add_argument(
-        "-o",
-        dest="ofilename",
-        required=True,
-        help="output file",
-        metavar="FILE",
-        type=lambda x: is_valid_output_file(parser, x),
-    )
     args = parser.parse_args()
-    main(args.ifilename, args.ofilename)
+    main(args.ifilename)
