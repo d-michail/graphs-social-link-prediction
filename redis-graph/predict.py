@@ -14,6 +14,7 @@ import gzip
 import redis
 from redisgraph import Node, Edge, Graph, Path
 
+MIN_DEGREE=100
 
 def main():
 
@@ -26,13 +27,21 @@ def main():
     print (rg.propertyKeys())
 
     # Find all vertices which have degree > 100
-    query = """MATCH (m1:Member)-[:Friend]->(m2:Member) WITH m1, count(m2) as friends WHERE friends > 100 RETURN m1, friends"""
+    # TODO: add also the neighbors in the result
+    query = "MATCH (m1:Member)-[:Friend]->(m2:Member) WITH m1, count(m2) as friends WHERE friends > {} RETURN m1, friends".format(MIN_DEGREE)
     result = rg.query(query)
 
-    # Iterate through resultset
+    degrees = {}
     for record in result.result_set:
-        path = record[0]
-        print(path)
+        member, count = record
+        degrees[member.id] = count
+
+    for v in degrees.keys():
+        for u in degrees.keys():
+            # TODO
+            pass
+
+    print(degrees)        
 
 
 if __name__ == "__main__":

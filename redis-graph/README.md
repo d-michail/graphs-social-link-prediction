@@ -35,8 +35,8 @@ Download LiveJournal to `../data`. Preprocess it using
 You will get two files 
 
 ```
-livejournal.nodes.csv.gz
-livejournal.edges.csv.gz
+Member.csv
+Friend.csv
 ```
 
 They can be used with <https://github.com/redisgraph/redisgraph-bulk-loader> in order to 
@@ -44,7 +44,7 @@ load the graph into Redis. Make sure you decompress them first. To load them you
 
 ```
 pip install redisgraph-bulk-loader
-redisgraph-bulk-loader LIVEJOURNAL -n livejournal.nodes.csv -r livejournal.edges.csv
+redisgraph-bulk-loader LIVEJOURNAL -n Member.csv -r Friend.csv
 ```
 
 # Redis Graph examples 
