@@ -12,16 +12,51 @@ import subprocess
 import csv
 import gzip
 
-def main(ifilename, ofilename):
+
+def main(ifilename, ofilename, renumber=False):
 
     print("Reading from gzip input file: {}".format(ifilename))
     print("Writing to gzip output file: {}".format(ofilename))
 
+    next_node = 0
+    nodes = {}
+
     with gzip.open(ifilename, "rt") as gzin, gzip.open(ofilename, "wt") as gzout:
         for line in gzin:
-            if not line.startswith("#"):
-                gzout.write(line)
+            if line.startswith("#"):
+                continue
+            fields = line.split()
+            if len(fields) != 2: 
+                print("Failed to parse line: {}".format(line))
+                continue
 
+            source = fields[0]
+            if renumber: 
+                if source in nodes: 
+                    source = nodes[source]
+                else: 
+                    nodes[source] = next_node
+                    source = next_node
+                    next_node += 1
+
+            target = fields[1]
+            if renumber: 
+                if target in nodes: 
+                    target = nodes[target]
+                else: 
+                    nodes[target] = next_node
+                    target = next_node
+                    next_node += 1
+
+            gzout.write("{}, {}\n".format(source, target))
+
+    if renumber:
+        renumber_filename = "renumber.txt.gz"
+        print("Writing renumbering map to gzip output file: {}".format(renumber_filename))
+        with gzip.open(renumber_filename, 'wt') as out: 
+            for k, v in nodes.items():
+                out.write("{} {}\n".format(k, v))
+            
 
 def is_valid_input_file(parser, arg):
     if not os.path.exists(arg):
@@ -53,5 +88,13 @@ if __name__ == "__main__":
         metavar="FILE",
         type=lambda x: is_valid_output_file(parser, x),
     )
+    parser.add_argument(
+        "-r",
+        dest="renumber",
+        help="Whether to renumber the vertices",
+        type=bool,
+        metavar="BOOLEAN",
+        default=False,
+    )
     args = parser.parse_args()
-    main(args.ifilename, args.ofilename)
+    main(args.ifilename, args.ofilename, renumber=args.renumber)
