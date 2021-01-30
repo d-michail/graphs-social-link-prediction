@@ -29,8 +29,8 @@ def main(ifilename):
     with gzip.open(ifilename, "rt") as gzin, open(nodes_csv, "wt") as nodesout, open(
         edges_csv, "wt"
     ) as edgesout:
-        nodesout.write(":ID(Member)\n")
-        edgesout.write(":START_ID(Member), :END_ID(Member)\n")
+        nodesout.write("_id, name\n")
+        edgesout.write("source, target\n")
         for line in gzin:
             if not line.startswith("#"):
                 fields = line.split()
@@ -39,12 +39,12 @@ def main(ifilename):
                     target = fields[1]
 
                     if source not in nodes:
-                        nodesout.write("{}\n".format(source))
+                        nodesout.write("{}, \"{}\"\n".format(int(source), source))
                         nodes.add(source)
                     if target not in nodes:
-                        nodesout.write("{}\n".format(target))
+                        nodesout.write("{}, \"{}\"\n".format(int(target), target))
                         nodes.add(target)
-                    edgesout.write("{}, {}\n".format(source, target))
+                    edgesout.write("{}, {}\n".format(int(source), int(target)))
                 except:
                     print("Failed to parse line: {}".format(line))
 
