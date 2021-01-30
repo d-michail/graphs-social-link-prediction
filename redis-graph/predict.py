@@ -72,6 +72,7 @@ def query_vertices(rg, min_degree=100):
 
 
 def run_queries(index, results, rg, queries, degrees, friends, topk):
+    print('Thread {} starting {} queries'.format(index, len(queries)))
     local_results = []
     for v, u in queries:
         score = adamic_adar(rg, v, u, degrees, friends)
@@ -79,9 +80,10 @@ def run_queries(index, results, rg, queries, degrees, friends, topk):
             local_results.append((v, u, score))
     local_results.sort(key=lambda x: x[2], reverse=True)
     results[index] = local_results[:topk]
+    print('Thread {} finished')
 
 
-def main():
+def main(args):
 
     r = redis.Redis(host="localhost", port=6379)
 
@@ -91,8 +93,10 @@ def main():
     print(rg.relationshipTypes())
     print(rg.propertyKeys())
 
-    friends, degrees = query_vertices(rg)
+    print('Looking for candidate vertices')
+    friends, degrees = query_vertices(rg, min_degree=args.min_degree)
 
+    print('Building candidate pairs')
     queries = []
     for v in friends.keys():
         adj = friends[v]
@@ -103,6 +107,7 @@ def main():
 
     cores = multiprocessing.cpu_count()
     results = [[] for _ in range(cores)]
+    print('Spliting to {} parts'.format(cores))
     queries_per_thread = np.array_split(np.array(queries), cores)
     threads = []
     topk = 10
@@ -117,14 +122,16 @@ def main():
     for th in threads:
         th.join()
 
+    print('Merging results')
     all_results = [item for sublist in results for item in sublist]
     all_results.sort(key=lambda x: x[2], reverse=True)
     print (all_results[:topk])
 
-    # rg.delete()
+    #rg.delete()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predict")
+    parser.add_argument('--mindegree', metavar='INT', type=int, default=500, dest='min_degree', help='Minimum degree')
     args = parser.parse_args()
-    main()
+    main(args)

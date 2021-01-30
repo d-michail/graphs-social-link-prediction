@@ -47,6 +47,12 @@ pip install redisgraph-bulk-loader
 redisgraph-bulk-loader LIVEJOURNAL -n Member.csv -r Friend.csv
 ```
 
+After loading create an index by using the following query in `redis-cli`:
+
+```
+GRAPH.QUERY LIVEJOURNAL "CREATE INDEX ON :Member(name)"
+```
+
 # Perform link prediction 
 
 Run script `predict.py` using 
