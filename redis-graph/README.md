@@ -29,7 +29,7 @@ redis-server --loadmodule redisgraph.so
 Download LiveJournal to `../data`. Preprocess it using 
 
 ```
-./preprocess.py -i ../data/soc-LiveJournal1.txt.gz -o livejournal
+./preprocess.py -i ../data/soc-LiveJournal1.txt.gz
 ```
 
 You will get two files 
@@ -45,6 +45,15 @@ load the graph into Redis. Make sure you decompress them first. To load them you
 ```
 pip install redisgraph-bulk-loader
 redisgraph-bulk-loader LIVEJOURNAL -n Member.csv -r Friend.csv
+```
+
+# Perform link prediction 
+
+Run script `predict.py` using 
+
+```
+pip install redisgraph
+./predict.py
 ```
 
 # Redis Graph examples 
