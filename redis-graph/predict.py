@@ -11,21 +11,24 @@ import subprocess
 import csv
 import gzip
 import math
+import multiprocessing
+import numpy as np
+import threading
 
 import redis
 from redisgraph import Node, Edge, Graph, Path
 
 
-def adamic_adar(rg, u, v, degrees, friends): 
+def adamic_adar(rg, u, v, degrees, friends):
     intersection = set(friends[u]).intersection(set(friends[v]))
     result = 0
-    for z in intersection: 
-        if z in degrees: 
+    for z in intersection:
+        if z in degrees:
             dz = degrees[z]
         else:
             dz = get_degree(rg, z)
             degrees[z] = dz
-        if dz < 2: 
+        if dz < 2:
             return None
 
         result += 1.0 / math.log(dz)
@@ -39,68 +42,87 @@ def get_degree(rg, v):
     if len(result) > 0:
         _, degree = result[0]
         return degree
-    
+
     query = f"MATCH (m1:Member {{name:{v}}}) RETURN m1"
     result = rg.query(query).result_set
     if len(result) > 0:
         return 0
 
-    raise ValueError('Failed to locate vertex: {}'.format(v))
-
-
-def all_vertices(rg):
-    query = "MATCH (m1:Member)-[:Friend]->(m2:Member) WITH m1, count(m2) as degree RETURN m1, degree"
-    result = rg.query(query)
-    for record in result.result_set:
-        member, member_degree = record
-        print(f"{member} - {member_degree}")
+    raise ValueError("Failed to locate vertex: {}".format(v))
 
 
 def query_vertices(rg, min_degree=100):
     """
     Find all vertices with a minimum degree
     """
-    query = "MATCH (m1:Member)-[:Friend]->(m2:Member) WITH m1, count(m2) as degree, collect(m2) as friends  WHERE degree > {} RETURN m1, degree, friends".format(min_degree)
+    query = "MATCH (m1:Member)-[:Friend]->(m2:Member) WITH m1, count(m2) as degree, collect(m2) as friends  WHERE degree > {} RETURN m1, degree, friends".format(
+        min_degree
+    )
     result = rg.query(query)
 
     friends = {}
     degrees = {}
     for record in result.result_set:
         member, member_degree, member_friends = record
-        name = member.properties['name']
+        name = member.properties["name"]
         degrees[name] = member_degree
-        friends[name] = list(map(lambda x: x.properties['name'], member_friends))
-    
+        friends[name] = list(map(lambda x: x.properties["name"], member_friends))
+
     return friends, degrees
+
+
+def run_queries(index, results, rg, queries, degrees, friends, topk):
+    local_results = []
+    for v, u in queries:
+        score = adamic_adar(rg, v, u, degrees, friends)
+        if score is not None:
+            local_results.append((v, u, score))
+    local_results.sort(key=lambda x: x[2], reverse=True)
+    results[index] = local_results[:topk]
 
 
 def main():
 
-    r = redis.Redis(host='localhost', port=6379)
+    r = redis.Redis(host="localhost", port=6379)
 
-    rg = Graph('LIVEJOURNAL', r)
+    rg = Graph("LIVEJOURNAL", r)
 
-    print (rg.labels())
-    print (rg.relationshipTypes())
-    print (rg.propertyKeys())
+    print(rg.labels())
+    print(rg.relationshipTypes())
+    print(rg.propertyKeys())
 
     friends, degrees = query_vertices(rg)
-    results = []
 
+    queries = []
     for v in friends.keys():
         adj = friends[v]
         for u in friends.keys():
-            if u in adj: 
+            if u in adj:
                 continue
-            score = adamic_adar(rg, v, u, degrees, friends)
-            if score is not None: 
-                results.append((v,u,score))
+            queries.append((v, u))
 
-    results.sort(key=lambda x: x[2], reverse=True)
+    cores = multiprocessing.cpu_count()
+    results = [[] for _ in range(cores)]
+    queries_per_thread = np.array_split(np.array(queries), cores)
+    threads = []
     topk = 10
-    print (results[:topk])
 
-    #rg.delete()
+    for i in range(cores):
+        th = threading.Thread(
+            target=run_queries, args=[i, results, rg, queries_per_thread[i], degrees, friends, topk]
+        )
+        threads.append(th)
+        th.start()
+
+    for th in threads:
+        th.join()
+
+    all_results = [item for sublist in results for item in sublist]
+    all_results.sort(key=lambda x: x[2], reverse=True)
+    print (all_results[:topk])
+
+    # rg.delete()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predict")
