@@ -11,17 +11,19 @@ import os
 import subprocess
 import csv
 import gzip
+import time
 
 
 def main(ifilename, ofilename, renumber=False):
 
     print("Reading from gzip input file: {}".format(ifilename))
     print("Writing to gzip output file: {}".format(ofilename))
+    print("Preprocess start: {:f} sec".format(time.time()))
 
     next_node = 0
     nodes = {}
 
-    with gzip.open(ifilename, "rt") as gzin, gzip.open(ofilename, "wt") as gzout:
+    with gzip.open(ifilename, "rt") as gzin, open(ofilename, "wt") as gzout:
         for line in gzin:
             if line.startswith("#"):
                 continue
@@ -51,12 +53,13 @@ def main(ifilename, ofilename, renumber=False):
             gzout.write("{}, {}\n".format(source, target))
 
     if renumber:
-        renumber_filename = "renumber.txt.gz"
-        print("Writing renumbering map to gzip output file: {}".format(renumber_filename))
-        with gzip.open(renumber_filename, 'wt') as out: 
+        renumber_filename = "renumber.txt"
+        print("Writing renumbering map to output file: {}".format(renumber_filename))
+        with open(renumber_filename, 'wt') as out: 
             for k, v in nodes.items():
                 out.write("{} {}\n".format(k, v))
-            
+
+    print("Preprocess finished: {:f} sec".format(time.time()))            
 
 def is_valid_input_file(parser, arg):
     if not os.path.exists(arg):

@@ -14,18 +14,21 @@ import math
 import multiprocessing
 import numpy as np
 import threading
+import time
 
 import redis
 from redisgraph import Node, Edge, Graph, Path
 
 
 def adamic_adar(rg, u, v, degrees, friends):
+    """Compute adamic adar for two vertices"""
     intersection = set(friends[u]).intersection(set(friends[v]))
     result = 0
     for z in intersection:
         if z in degrees:
             dz = degrees[z]
         else:
+            # query DB and cache result
             dz = get_degree(rg, z)
             degrees[z] = dz
         if dz < 2:
@@ -51,11 +54,11 @@ def get_degree(rg, v):
     raise ValueError("Failed to locate vertex: {}".format(v))
 
 
-def query_vertices(rg, min_degree=100):
+def query_vertices(rg, min_degree):
     """
     Find all vertices with a minimum degree
     """
-    query = "MATCH (m1:Member)-[:Friend]->(m2:Member) WITH m1, count(m2) as degree, collect(m2) as friends  WHERE degree > {} RETURN m1, degree, friends".format(
+    query = "MATCH (m1:Member)-[:Friend]->(m2:Member) WITH m1, count(m2) as degree, collect(m2) as friends  WHERE degree >= {} RETURN m1, degree, friends".format(
         min_degree
     )
     result = rg.query(query)
@@ -73,6 +76,7 @@ def query_vertices(rg, min_degree=100):
 
 def run_queries(index, results, rg, queries, degrees, friends, topk):
     print('Thread {} starting {} queries'.format(index, len(queries)))
+    print("Thread {} start: {:f} sec".format(index, time.time()))
     local_results = []
     for v, u in queries:
         score = adamic_adar(rg, v, u, degrees, friends)
@@ -80,7 +84,7 @@ def run_queries(index, results, rg, queries, degrees, friends, topk):
             local_results.append((v, u, score))
     local_results.sort(key=lambda x: x[2], reverse=True)
     results[index] = local_results[:topk]
-    print('Thread {} finished')
+    print("Thread {} finished: {:f}".format(index, time.time()))
 
 
 def main(args):
@@ -94,6 +98,7 @@ def main(args):
     print(rg.propertyKeys())
 
     print('Looking for candidate vertices')
+    print("Building candidate pairs start: {:f} sec".format(time.time()))
     friends, degrees = query_vertices(rg, min_degree=args.min_degree)
 
     print('Building candidate pairs')
@@ -104,6 +109,9 @@ def main(args):
             if u in adj:
                 continue
             queries.append((v, u))
+
+    print("Building candidate pairs finished: {:f} sec".format(time.time()))
+    print("Candidate pairs: {}".format(len(queries)))
 
     cores = multiprocessing.cpu_count()
     results = [[] for _ in range(cores)]
@@ -125,6 +133,7 @@ def main(args):
     print('Merging results')
     all_results = [item for sublist in results for item in sublist]
     all_results.sort(key=lambda x: x[2], reverse=True)
+    print("Merged all results done: {:f} sec".format(time.time()))
     print (all_results[:topk])
 
     #rg.delete()
@@ -132,6 +141,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predict")
-    parser.add_argument('--mindegree', metavar='INT', type=int, default=500, dest='min_degree', help='Minimum degree')
+    parser.add_argument('--mindegree', metavar='INT', type=int, default=100, dest='min_degree', help='Minimum degree')
     args = parser.parse_args()
     main(args)
