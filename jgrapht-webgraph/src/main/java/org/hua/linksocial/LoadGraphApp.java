@@ -4,8 +4,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
-import it.unimi.dsi.big.webgraph.ArcListASCIIGraph;
 import it.unimi.dsi.big.webgraph.BVGraph;
+import it.unimi.dsi.big.webgraph.ScatteredArcsASCIIGraph;
 
 /**
  * Load a graph from a gzip file to a webgraph file.
@@ -28,11 +28,14 @@ public class LoadGraphApp {
 		String outputFile = args[1];
 
 		try {
+			System.out.println("Starting graph loading: " + System.currentTimeMillis() + " ms");
 			InputStream fileStream = new FileInputStream(inputFile);
 			InputStream gzipStream = new GZIPInputStream(fileStream);
-			final int shift = 0;
-			ArcListASCIIGraph onceLoadWrapperGraph = ArcListASCIIGraph.loadOnce(gzipStream, shift);
-			BVGraph.store(onceLoadWrapperGraph, outputFile);
+			//final int shift = 0;
+			//ArcListASCIIGraph onceLoadWrapperGraph = ArcListASCIIGraph.loadOnce(gzipStream, shift);
+			ScatteredArcsASCIIGraph tmpGraph = new ScatteredArcsASCIIGraph(gzipStream);
+			BVGraph.store(tmpGraph, outputFile);
+			System.out.println("Finished graph loading: " + System.currentTimeMillis() + " ms");
 		} catch (Exception e) {
 			System.out.println("Error: " + e);
 			e.printStackTrace();

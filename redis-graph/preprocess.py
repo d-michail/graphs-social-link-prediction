@@ -12,6 +12,7 @@ import os
 import subprocess
 import csv
 import gzip
+import time
 
 
 def main(ifilename):
@@ -24,6 +25,7 @@ def main(ifilename):
     print("Writing nodes to output file: {}".format(nodes_csv))
     print("Writing edges to output file: {}".format(edges_csv))
 
+    print("Preprocess start: {:f} sec".format(time.time()))
     nodes = set()
 
     with gzip.open(ifilename, "rt") as gzin, open(nodes_csv, "wt") as nodesout, open(
@@ -48,6 +50,7 @@ def main(ifilename):
                 except:
                     print("Failed to parse line: {}".format(line))
 
+    print("Preprocess finished: {:f} sec".format(time.time()))
 
 def is_valid_input_file(parser, arg):
     if not os.path.exists(arg):
