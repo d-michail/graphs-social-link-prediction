@@ -28,12 +28,14 @@ public class LoadGraphApp {
 		String outputFile = args[1];
 
 		try {
+			System.out.println("Starting graph loading: " + System.currentTimeMillis() + " ms");
 			InputStream fileStream = new FileInputStream(inputFile);
 			InputStream gzipStream = new GZIPInputStream(fileStream);
 			//final int shift = 0;
 			//ArcListASCIIGraph onceLoadWrapperGraph = ArcListASCIIGraph.loadOnce(gzipStream, shift);
 			ScatteredArcsASCIIGraph tmpGraph = new ScatteredArcsASCIIGraph(gzipStream);
 			BVGraph.store(tmpGraph, outputFile);
+			System.out.println("Finished graph loading: " + System.currentTimeMillis() + " ms");
 		} catch (Exception e) {
 			System.out.println("Error: " + e);
 			e.printStackTrace();

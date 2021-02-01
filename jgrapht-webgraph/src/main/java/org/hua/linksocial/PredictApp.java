@@ -40,14 +40,12 @@ public class PredictApp {
 		System.out.println("Will read from webgraph file: " + inputFile);
 		System.out.println("Will query vertices of minimum degree: " + minDegree);
 
+		System.out.println("Starting graph load: " + System.currentTimeMillis() + " ms");
 		BVGraph bvGraph = BVGraph.load(inputFile);
+		System.out.println("Graph load done: " + System.currentTimeMillis() + " ms");
 		ImmutableDirectedBigGraphAdapter graph = new ImmutableDirectedBigGraphAdapter(bvGraph);
 		System.out.println("Graph has " + graph.iterables().vertexCount() + " number of vertices");
 		System.out.println("Graph has " + graph.iterables().edgeCount() + " number of edges");
-
-		ImmutableDirectedBigGraphAdapter copy = graph.copy();
-
-		AdamicAdarIndexLinkPrediction<Long, LongLongPair> alg = new AdamicAdarIndexLinkPrediction<>(graph);
 
 		List<Pair<Long, Long>> queries = new ArrayList<>();
 		long vertexCount = graph.iterables().vertexCount();
@@ -76,6 +74,7 @@ public class PredictApp {
 			}
 		}
 		System.out.println("Computed " + queries.size() + " queries");
+		System.out.println("Finished queries computation: " + System.currentTimeMillis() + " ms");
 
 		int cores = Runtime.getRuntime().availableProcessors();
 		System.out.println("Spliting into " + cores + " cores");
@@ -93,14 +92,15 @@ public class PredictApp {
 		for (int i = 0; i < cores; i++) {
 			threads[i].join();
 		}
-		
+
 		List<Triple<Long, Long, Double>> finalResults = new ArrayList<>();
 		for (int i = 0; i < cores; i++) {
 			finalResults.addAll(responses.get(i));
 		}
 		finalResults.sort(Comparator.comparing((Triple<Long, Long, Double> t) -> t.getThird()).reversed());
 		finalResults = finalResults.subList(0, topK);
-		
+
+		System.out.println("Joined all results: " + System.currentTimeMillis() + " ms");
 		System.out.println(finalResults);
 	}
 
@@ -123,6 +123,7 @@ public class PredictApp {
 
 		@Override
 		public void run() {
+			System.out.println("Thread " + index + " start: " + System.currentTimeMillis() + " ms");
 			AdamicAdarIndexLinkPrediction<Long, LongLongPair> alg = new AdamicAdarIndexLinkPrediction<>(graph);
 			List<Triple<Long, Long, Double>> result = new ArrayList<>();
 			for (Pair<Long, Long> q : queries) {
@@ -139,9 +140,10 @@ public class PredictApp {
 			result.sort(Comparator.comparing((Triple<Long, Long, Double> t) -> t.getThird()).reversed());
 			result = result.subList(0, topK);
 
-			//System.out.println("Thread " + index + " found: " + result);
+			// System.out.println("Thread " + index + " found: " + result);
 
 			responses.put(index, result);
+			System.out.println("Thread " + index + " end: " + System.currentTimeMillis() + " ms");
 		}
 
 	}
