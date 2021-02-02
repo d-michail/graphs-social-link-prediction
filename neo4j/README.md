@@ -13,7 +13,7 @@ rm neo4j-graph-data-science-1.4.1-standalone.zip
 
 Then, modify the neo4j config file by executing the following commands:
 ```
-cd PATH/TO/NEO4J/SERVER
+cd neo4j-community-4.1.6
 `vim conf/neo4j.conf`
 ```
 Add the following line `dbms.security.procedures.unrestricted=gds.*`
@@ -36,25 +36,25 @@ Friend.csv
 
 They can be used with <https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin> in order to load the graph into Neo4j. To load them you should:
 ```
-cd PATH/TO/NEO4J/SERVER
+cd neo4j-community-4.1.6
 cd bin
 ./neo4j-admin import --nodes=Member=fullpath/Member.csv --relationships=Friend=fullpath/Friend.csv
 ```
 
 After loading execute the following commands:
 ```
-cd PATH/TO/NEO4J/SERVER
+cd neo4j-community-4.1.6
 cd bin
-cd ./neo4j-server console
+./neo4j console
 ```
 From a different terminal execute the following commands:
 ```
-cd PATH/TO/NEO4J/SERVER
+cd neo4j-community-4.1.6
 cd bin
 ./cypher-shell
 ```
 While being into the cypher-shell create an index by using the following query:
-`CREATE INDEX FOR(n:Member) ON(n.name)`
+`CREATE INDEX FOR(n:Member) ON(n.name);`
 
 # Perform link prediction 
 
@@ -63,4 +63,14 @@ Run script `predict.py`
 ```
 pip install neo4j
 ./predict.py
+```
+
+# Remove database data
+
+If you want to remove the data from the database execute the following commands:
+
+```
+ cd neo4j-community-4.1.6/data
+ rm -rf databases/neo4j/*
+ rm -rf transactions/neo4j/*
 ```
