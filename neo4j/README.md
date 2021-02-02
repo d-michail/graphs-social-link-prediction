@@ -16,8 +16,11 @@ Then, modify the neo4j config file by executing the following commands:
 cd neo4j-community-4.1.6
 `vim conf/neo4j.conf`
 ```
+
 Add the following line `dbms.security.procedures.unrestricted=gds.*`
+
 Uncomment the following lines and set the heap size to something big (let's say something greater than 8GB)
+
 ```
 dbms.memory.heap.initial_size=512m
 dbms.memory.heap.max_size=512m
