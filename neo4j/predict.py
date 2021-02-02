@@ -71,7 +71,7 @@ def get_property_keys(driver):
 
 def main(args):
 
-    driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "1234"), encrypted=False)
+    driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "demo"), encrypted=False)
 
     print(get_node_labels(driver))
     print(get_relationship_types(driver))
@@ -81,7 +81,7 @@ def main(args):
     print("Building candidate pairs start: {:f} sec".format(time.time()))
     friends = query_vertices(driver, min_degree=args.min_degree)
 
-    print(friends.keys())
+    #print(friends.keys())
 
     print('Building candidate pairs')
     queries = []
@@ -123,6 +123,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predict")
-    parser.add_argument('--mindegree', metavar='INT', type=int, default=100, dest='min_degree', help='Minimum degree')
+    parser.add_argument('--mindegree', metavar='INT', type=int, default=500, dest='min_degree', help='Minimum degree')
     args = parser.parse_args()
     main(args)
