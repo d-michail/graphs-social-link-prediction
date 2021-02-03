@@ -17,7 +17,7 @@ def adamic_adar(driver, u, v):
     """Compute adamic adar for two vertices"""
     query = """MATCH (m1:Member {name: '%s'})
         MATCH (m2:Member {name: '%s'})
-        RETURN gds.alpha.linkprediction.adamicAdar(m1, m2, {relationshipQuery:'Friend'})
+        RETURN gds.alpha.linkprediction.adamicAdar(m1, m2, {relationshipQuery:'Friend', orientation:'NATURAL'})
     """%(u, v)
     with driver.session() as session:
         result = session.read_transaction(lambda tx: tx.run(query)).single()[0]
