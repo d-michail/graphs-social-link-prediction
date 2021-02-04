@@ -71,7 +71,7 @@ def get_property_keys(driver):
 
 def main(args):
 
-    driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "1234"), encrypted=False)
+    driver = GraphDatabase.driver("bolt://localhost:7687", auth=(args.username, args.password), encrypted=False)
 
     print(get_node_labels(driver))
     print(get_relationship_types(driver))
@@ -124,5 +124,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predict")
     parser.add_argument('--mindegree', metavar='INT', type=int, default=100, dest='min_degree', help='Minimum degree')
+    parser.add_argument('--username', type=str, default='neo4j', dest='username', help='Neo4j username')
+    parser.add_argument('--password', type=str, default='demo', dest='password', help='Neo4j password')
     args = parser.parse_args()
     main(args)
