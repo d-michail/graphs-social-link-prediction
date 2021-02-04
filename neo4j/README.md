@@ -64,7 +64,7 @@ While being into the cypher-shell create an index by using the following query:
 Run script `predict.py`
 
 ```
-pip install neo4j
+pip install neo4j==1.7.2
 ./predict.py
 ```
 

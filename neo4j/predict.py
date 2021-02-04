@@ -81,7 +81,7 @@ def main(args):
     print("Building candidate pairs start: {:f} sec".format(time.time()))
     friends = query_vertices(driver, min_degree=args.min_degree)
 
-    print(friends.keys())
+    #print(friends.keys())
 
     print('Building candidate pairs')
     queries = []
@@ -123,7 +123,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predict")
-    parser.add_argument('--mindegree', metavar='INT', type=int, default=100, dest='min_degree', help='Minimum degree')
+    parser.add_argument('--mindegree', metavar='INT', type=int, default=500, dest='min_degree', help='Minimum degree')
     parser.add_argument('--username', type=str, default='neo4j', dest='username', help='Neo4j username')
     parser.add_argument('--password', type=str, default='demo', dest='password', help='Neo4j password')
     args = parser.parse_args()
