@@ -68,11 +68,10 @@ def get_property_keys(driver):
         res = session.read_transaction(lambda tx: tx.run('CALL db.propertyKeys()'))
     return list(res)
 
-
-def main(args):
-
+def single_run():
     driver = GraphDatabase.driver("bolt://localhost:7687", auth=(args.username, args.password), encrypted=False)
 
+    start = time.time()
     print(get_node_labels(driver))
     print(get_relationship_types(driver))
     print(get_property_keys(driver))
@@ -118,13 +117,30 @@ def main(args):
     print("Merged all results done: {:f} sec".format(time.time()))
     print (all_results[:topk])
 
+    end=time.time()
+
     driver.close()
+
+    return end-start, all_results[:topk]
+
+
+def main(args):
+    avg = 0
+    for i in range(args.repeat):
+        print("Starting run {}".format(i))
+        time, results = single_run()
+        print("Run {}, time {} sec, results {}".format(i, time, results))
+        avg += time
+    avg /= args.repeat
+
+    print("Average time {} sec".format(avg))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predict")
-    parser.add_argument('--mindegree', metavar='INT', type=int, default=500, dest='min_degree', help='Minimum degree')
+    parser.add_argument('--mindegree', metavar='INT', type=int, default=100, dest='min_degree', help='Minimum degree')
     parser.add_argument('--username', type=str, default='neo4j', dest='username', help='Neo4j username')
     parser.add_argument('--password', type=str, default='demo', dest='password', help='Neo4j password')
+    parser.add_argument('--repeat', metavar='INT', type=int, default=10, dest='repeat', help='How many times to repeat the experiment')
     args = parser.parse_args()
     main(args)
