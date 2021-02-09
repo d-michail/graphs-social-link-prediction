@@ -40,6 +40,8 @@ def main(ifilename):
                 try:
                     source = fields[0]
                     target = fields[1]
+                    if source == target: 
+                        continue
 
                     if source not in nodes:
                         nodesout.write("{}, \"{}\"\n".format(int(source), source))

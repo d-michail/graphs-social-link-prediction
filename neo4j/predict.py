@@ -87,7 +87,7 @@ def single_run():
     for v in friends.keys():
         adj = friends[v]
         for u in friends.keys():
-            if u in adj:
+            if v == u or u in adj:
                 continue
             queries.append((v, u))
 

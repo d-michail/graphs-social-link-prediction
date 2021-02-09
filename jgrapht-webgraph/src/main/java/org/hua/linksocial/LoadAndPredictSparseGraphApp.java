@@ -128,7 +128,7 @@ public class LoadAndPredictSparseGraphApp {
 
 			// test all possible neighbors
 			for (int t = 0; t < vertexCount; t++) {
-				if (other.contains(t)) {
+				if (s == t || other.contains(t)) {
 					continue;
 				}
 

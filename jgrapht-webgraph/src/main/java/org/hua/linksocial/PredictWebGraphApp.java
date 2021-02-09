@@ -45,7 +45,7 @@ public class PredictWebGraphApp {
 
 			// test all possible neighbors
 			for (long t = 0; t < vertexCount; t++) {
-				if (other.contains(t)) {
+				if (s == t || other.contains(t)) {
 					continue;
 				}
 
