@@ -15,7 +15,7 @@ import it.unimi.dsi.big.webgraph.ScatteredArcsASCIIGraph;
  * consecutive integers. Source vertices must appear in increasing order and
  * their numbers. Targets may appear in any order.
  */
-public class LoadGraphApp {
+public class LoadWebGraphApp {
 
 	public static void main(String args[]) {
 

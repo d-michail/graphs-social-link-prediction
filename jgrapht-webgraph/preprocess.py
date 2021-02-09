@@ -50,7 +50,7 @@ def main(ifilename, ofilename, renumber=False):
                     target = next_node
                     next_node += 1
 
-            gzout.write("{}, {}\n".format(source, target))
+            gzout.write("{} {}\n".format(source, target))
 
     if renumber:
         renumber_filename = "renumber.txt"

@@ -16,6 +16,9 @@ public class Args {
 	@Parameter(names = "-repeat", description = "How many times to repeat the experiment")
 	private Integer repeat = 10;
 
+	@Parameter(names = "-renumberFile", description = "File with vertex renumbering")
+	private String renumberFile;
+
 	public List<String> getParameters() {
 		return parameters;
 	}
@@ -38,6 +41,14 @@ public class Args {
 
 	public void setRepeat(Integer repeat) {
 		this.repeat = repeat;
+	}
+
+	public String getRenumberFile() {
+		return renumberFile;
+	}
+
+	public void setRenumberFile(String renumberFile) {
+		this.renumberFile = renumberFile;
 	}
 
 }

@@ -22,7 +22,7 @@ import com.google.common.collect.Lists;
 import it.unimi.dsi.big.webgraph.BVGraph;
 import it.unimi.dsi.fastutil.longs.LongLongPair;
 
-public class PredictApp {
+public class PredictWebGraphApp {
 
 	private static long singleRun(int run, ImmutableDirectedBigGraphAdapter graph, int minDegree)
 			throws InterruptedException {
