@@ -24,28 +24,11 @@ import it.unimi.dsi.fastutil.longs.LongLongPair;
 
 public class PredictApp {
 
-	public static void main(String args[]) throws IOException, InterruptedException {
+	private static long singleRun(int run, ImmutableDirectedBigGraphAdapter graph, int minDegree)
+			throws InterruptedException {
 
-		Args argsModel = new Args();
-		JCommander.newBuilder().addObject(argsModel).build().parse(args);
-
-		if (argsModel.getParameters().size() < 1) {
-			System.out.println("Required input file missing");
-			System.exit(-1);
-		}
-
-		String inputFile = argsModel.getParameters().get(0);
-		final int minDegree = argsModel.getMinDegree();
-
-		System.out.println("Will read from webgraph file: " + inputFile);
-		System.out.println("Will query vertices of minimum degree: " + minDegree);
-
-		System.out.println("Starting graph load: " + System.currentTimeMillis() + " ms");
-		BVGraph bvGraph = BVGraph.load(inputFile);
-		System.out.println("Graph load done: " + System.currentTimeMillis() + " ms");
-		ImmutableDirectedBigGraphAdapter graph = new ImmutableDirectedBigGraphAdapter(bvGraph);
-		System.out.println("Graph has " + graph.iterables().vertexCount() + " number of vertices");
-		System.out.println("Graph has " + graph.iterables().edgeCount() + " number of edges");
+		System.out.println("Run " + run);
+		long start = System.currentTimeMillis();
 
 		List<Pair<Long, Long>> queries = new ArrayList<>();
 		long vertexCount = graph.iterables().vertexCount();
@@ -102,6 +85,40 @@ public class PredictApp {
 
 		System.out.println("Joined all results: " + System.currentTimeMillis() + " ms");
 		System.out.println(finalResults);
+
+		long end = System.currentTimeMillis();
+		return end - start;
+	}
+
+	public static void main(String args[]) throws IOException, InterruptedException {
+
+		Args argsModel = new Args();
+		JCommander.newBuilder().addObject(argsModel).build().parse(args);
+
+		if (argsModel.getParameters().size() < 1) {
+			System.out.println("Required input file missing");
+			System.exit(-1);
+		}
+
+		String inputFile = argsModel.getParameters().get(0);
+		final int minDegree = argsModel.getMinDegree();
+
+		System.out.println("Will read from webgraph file: " + inputFile);
+		System.out.println("Will query vertices of minimum degree: " + minDegree);
+
+		System.out.println("Starting graph load: " + System.currentTimeMillis() + " ms");
+		BVGraph bvGraph = BVGraph.load(inputFile);
+		System.out.println("Graph load done: " + System.currentTimeMillis() + " ms");
+		ImmutableDirectedBigGraphAdapter graph = new ImmutableDirectedBigGraphAdapter(bvGraph);
+		System.out.println("Graph has " + graph.iterables().vertexCount() + " number of vertices");
+		System.out.println("Graph has " + graph.iterables().edgeCount() + " number of edges");
+
+		double avg = 0;
+		for (int i = 0; i < argsModel.getRepeat(); i++) {
+			avg += singleRun(i, graph, minDegree);
+		}
+		avg /= argsModel.getRepeat();
+		System.out.println("Average time taken: " + avg + " (ms)");
 	}
 
 	private static class SingleTask implements Runnable {

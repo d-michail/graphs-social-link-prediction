@@ -13,6 +13,9 @@ public class Args {
 	@Parameter(names = "-mindegree", description = "Minimum degree")
 	private Integer minDegree = 100;
 
+	@Parameter(names = "-repeat", description = "How many times to repeat the experiment")
+	private Integer repeat = 10;
+
 	public List<String> getParameters() {
 		return parameters;
 	}
@@ -27,6 +30,14 @@ public class Args {
 
 	public void setMinDegree(Integer minDegree) {
 		this.minDegree = minDegree;
+	}
+
+	public Integer getRepeat() {
+		return repeat;
+	}
+
+	public void setRepeat(Integer repeat) {
+		this.repeat = repeat;
 	}
 
 }
