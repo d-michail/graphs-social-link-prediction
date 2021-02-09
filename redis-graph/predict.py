@@ -87,12 +87,8 @@ def run_queries(index, results, rg, queries, degrees, friends, topk):
     print("Thread {} finished: {:f}".format(index, time.time()))
 
 
-def main(args):
-
-    r = redis.Redis(host="localhost", port=6379)
-
-    rg = Graph("LIVEJOURNAL", r)
-
+def single_run(rg): 
+    start = time.time()
     print(rg.labels())
     print(rg.relationshipTypes())
     print(rg.propertyKeys())
@@ -137,11 +133,32 @@ def main(args):
     print("Merged all results done: {:f} sec".format(time.time()))
     print (all_results[:topk])
 
+    end=time.time()
+    return end-start, all_results[:topk]
     #rg.delete()
+
+
+
+def main(args):
+
+    r = redis.Redis(host="localhost", port=6379)
+    rg = Graph("GRAPH", r)
+
+    avg = 0
+    for i in range(args.repeat):
+        print("Starting run {}".format(i))
+        time, results = single_run(rg)
+        print("Run {}, time {} sec, results {}".format(i, time, results))
+        avg += time
+    avg /= args.repeat
+
+    print("Average time {} sec".format(avg))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predict")
     parser.add_argument('--mindegree', metavar='INT', type=int, default=100, dest='min_degree', help='Minimum degree')
+    parser.add_argument('--repeat', metavar='INT', type=int, default=10, dest='repeat', help='How many times to repeat the experiment')
+
     args = parser.parse_args()
     main(args)

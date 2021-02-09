@@ -44,13 +44,13 @@ load the graph into Redis. Make sure you decompress them first. To load them you
 
 ```
 pip install redisgraph-bulk-loader
-redisgraph-bulk-loader LIVEJOURNAL -n Member.csv -r Friend.csv
+redisgraph-bulk-loader GRAPH -n Member.csv -r Friend.csv
 ```
 
 After loading create an index by using the following query in `redis-cli`:
 
 ```
-GRAPH.QUERY LIVEJOURNAL "CREATE INDEX ON :Member(name)"
+GRAPH.QUERY GRAPH "CREATE INDEX ON :Member(name)"
 ```
 
 # Perform link prediction 
