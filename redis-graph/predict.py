@@ -98,6 +98,7 @@ def main(args):
     print(rg.propertyKeys())
 
     print('Looking for candidate vertices')
+    print('Using minimum degree: {}'.format(args.min_degree))
     print("Building candidate pairs start: {:f} sec".format(time.time()))
     friends, degrees = query_vertices(rg, min_degree=args.min_degree)
 
