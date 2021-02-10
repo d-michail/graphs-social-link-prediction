@@ -1,6 +1,10 @@
 package org.hua.linksocial;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -8,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.linkprediction.AdamicAdarIndexLinkPrediction;
@@ -24,19 +29,24 @@ import it.unimi.dsi.fastutil.longs.LongLongPair;
 
 public class PredictWebGraphApp {
 
-	private static long singleRun(int run, ImmutableDirectedBigGraphAdapter graph, int minDegree)
+	private static long singleRun(int run, ImmutableDirectedBigGraphAdapter graph, Map<Long, Long> renumber, int minDegree)
 			throws InterruptedException {
 
 		System.out.println("Run " + run);
+		System.out.println("Starting queries computation: " + System.currentTimeMillis() + " ms");
 		long start = System.currentTimeMillis();
 
-		List<Pair<Long, Long>> queries = new ArrayList<>();
 		long vertexCount = graph.iterables().vertexCount();
+		List<Long> minDegreeVertices = new ArrayList<>();
 		for (long s = 0; s < vertexCount; s++) {
 			if (graph.iterables().outDegreeOf(s) < minDegree) {
 				continue;
 			}
-
+			minDegreeVertices.add(s);
+		}
+		
+		List<Pair<Long, Long>> queries = new ArrayList<>();
+		for (Long s: minDegreeVertices) {
 			// index neighbors
 			Set<Long> other = new HashSet<>();
 			for (LongLongPair e : graph.outgoingEdgesOf(s)) {
@@ -44,15 +54,10 @@ public class PredictWebGraphApp {
 			}
 
 			// test all possible neighbors
-			for (long t = 0; t < vertexCount; t++) {
+			for (Long t: minDegreeVertices) {
 				if (s == t || other.contains(t)) {
 					continue;
 				}
-
-				if (graph.iterables().outDegreeOf(t) < minDegree) {
-					continue;
-				}
-
 				queries.add(Pair.of(s, t));
 			}
 		}
@@ -68,7 +73,7 @@ public class PredictWebGraphApp {
 		Thread[] threads = new Thread[cores];
 		for (int i = 0; i < cores; i++) {
 			System.out.println("Starting thread " + i);
-			threads[i] = new Thread(new SingleTask(graph.copy(), i, topK, queriesPartitions.get(i), responses));
+			threads[i] = new Thread(new SingleTask(graph.copy(), renumber, i, topK, queriesPartitions.get(i), responses));
 			threads[i].start();
 		}
 
@@ -99,9 +104,11 @@ public class PredictWebGraphApp {
 			System.out.println("Required input file missing");
 			System.exit(-1);
 		}
-
+	
 		String inputFile = argsModel.getParameters().get(0);
 		final int minDegree = argsModel.getMinDegree();
+		
+		Map<Long, Long> renumber = readRenumberFile(argsModel.getRenumberFile());
 
 		System.out.println("Will read from webgraph file: " + inputFile);
 		System.out.println("Will query vertices of minimum degree: " + minDegree);
@@ -115,7 +122,7 @@ public class PredictWebGraphApp {
 
 		double avg = 0;
 		for (int i = 0; i < argsModel.getRepeat(); i++) {
-			avg += singleRun(i, graph, minDegree);
+			avg += singleRun(i, graph, renumber, minDegree);
 		}
 		avg /= argsModel.getRepeat();
 		System.out.println("Average time taken: " + avg + " (ms)");
@@ -124,14 +131,16 @@ public class PredictWebGraphApp {
 	private static class SingleTask implements Runnable {
 
 		private ImmutableDirectedBigGraphAdapter graph;
+		private Map<Long, Long> renumber;
 		private int index;
 		private int topK;
 		private List<Pair<Long, Long>> queries;
 		private Map<Integer, List<Triple<Long, Long, Double>>> responses;
 
-		public SingleTask(ImmutableDirectedBigGraphAdapter graph, int index, int topK, List<Pair<Long, Long>> queries,
+		public SingleTask(ImmutableDirectedBigGraphAdapter graph, Map<Long, Long> renumber, int index, int topK, List<Pair<Long, Long>> queries,
 				Map<Integer, List<Triple<Long, Long, Double>>> responses) {
 			this.graph = graph;
+			this.renumber = renumber;
 			this.index = index;
 			this.topK = topK;
 			this.queries = queries;
@@ -156,6 +165,12 @@ public class PredictWebGraphApp {
 
 			result.sort(Comparator.comparing((Triple<Long, Long, Double> t) -> t.getThird()).reversed());
 			result = result.subList(0, topK);
+			
+			if (renumber.size() > 0) {
+				result = result.stream()
+						.map(t -> Triple.of(renumber.get(t.getFirst()), renumber.get(t.getSecond()), t.getThird()))
+						.collect(Collectors.toList());
+			}
 
 			// System.out.println("Thread " + index + " found: " + result);
 
@@ -163,6 +178,30 @@ public class PredictWebGraphApp {
 			System.out.println("Thread " + index + " end: " + System.currentTimeMillis() + " ms");
 		}
 
+	}
+	
+	private static Map<Long, Long> readRenumberFile(String renumberFile)
+			throws FileNotFoundException, IOException {
+		if (renumberFile == null) {
+			return Map.of();
+		}
+
+		Map<Long, Long> renumber = new HashMap<>();
+
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(renumberFile)))) {
+			String line = reader.readLine();
+			while (line != null) {
+				if (line.startsWith("#")) {
+					continue;
+				}
+				String[] fields = line.split("\\s+");
+				long source = Long.valueOf(fields[0]);
+				long target = Long.valueOf(fields[1]);
+				renumber.put(target, source);
+				line = reader.readLine();
+			}
+		}
+		return renumber;
 	}
 
 }

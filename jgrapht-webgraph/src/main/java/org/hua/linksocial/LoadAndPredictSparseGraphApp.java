@@ -38,6 +38,7 @@ public class LoadAndPredictSparseGraphApp {
 
 		String inputFile = argsModel.getParameters().get(0);
 		final int minDegree = argsModel.getMinDegree();
+		System.out.println("Using minimum degree: " + minDegree);
 
 		Map<Integer, Integer> renumber = readRenumberFile(argsModel.getRenumberFile());
 
@@ -111,15 +112,21 @@ public class LoadAndPredictSparseGraphApp {
 			throws InterruptedException {
 
 		System.out.println("Run " + run);
+		System.out.println("Starting queries computation: " + System.currentTimeMillis() + " ms");
 		long start = System.currentTimeMillis();
 
-		List<Pair<Integer, Integer>> queries = new ArrayList<>();
 		int vertexCount = graph.vertexSet().size();
+		List<Integer> minDegreeVertices = new ArrayList<>();
 		for (int s = 0; s < vertexCount; s++) {
 			if (graph.outDegreeOf(s) < minDegree) {
 				continue;
 			}
+			minDegreeVertices.add(s);
+		}
+		System.out.println("Found " + minDegreeVertices.size() + " vertices with degree >= " + minDegree);
 
+		List<Pair<Integer, Integer>> queries = new ArrayList<>();
+		for (Integer s : minDegreeVertices) {
 			// index neighbors
 			Set<Integer> other = new HashSet<>();
 			for (Integer e : graph.outgoingEdgesOf(s)) {
@@ -127,15 +134,10 @@ public class LoadAndPredictSparseGraphApp {
 			}
 
 			// test all possible neighbors
-			for (int t = 0; t < vertexCount; t++) {
-				if (s == t || other.contains(t)) {
+			for (Integer t : minDegreeVertices) {
+				if (s.equals(t) || other.contains(t)) {
 					continue;
 				}
-
-				if (graph.outDegreeOf(t) < minDegree) {
-					continue;
-				}
-
 				queries.add(Pair.of(s, t));
 			}
 		}
