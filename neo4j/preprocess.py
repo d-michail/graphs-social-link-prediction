@@ -9,6 +9,7 @@
 import argparse
 import os
 import gzip
+import time
 
 
 def main(ifilename):
@@ -20,6 +21,8 @@ def main(ifilename):
     print("Writing nodes to output file: {}".format(nodes_csv))
     print("Writing edges to output file: {}".format(edges_csv))
 
+    start=time.time()
+    print("Preprocess start: {:f} sec".format(start))
     nodes = set()
 
     with gzip.open(ifilename, "rt") as gzin, open(nodes_csv, "wt") as nodesout, open(
@@ -43,6 +46,10 @@ def main(ifilename):
                     edgesout.write("{},{}\n".format(int(source), int(target)))
                 except:
                     print("Failed to parse line: {}".format(line))
+
+    end = time.time()
+    print("Preprocess finished: {:f} sec".format(end))
+    print("Took: {:f} sec".format(end-start))
 
 
 def is_valid_input_file(parser, arg):

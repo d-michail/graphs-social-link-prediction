@@ -9,6 +9,7 @@ import multiprocessing
 import numpy as np
 import threading
 import time
+import sys
 
 from neo4j import GraphDatabase
 
@@ -44,14 +45,21 @@ def query_vertices(driver, min_degree):
 def run_queries(index, results, driver, queries, topk):
     print('Thread {} starting {} queries'.format(index, len(queries)))
     print("Thread {} start: {:f} sec".format(index, time.time()))
+    sys.stdout.flush()
     local_results = []
+    i = 0
     for v, u in queries:
+        if i % 1000 == 0:
+            print('Thread {} at query {}'.format(index, i))
+            sys.stdout.flush()
         score = adamic_adar(driver, v, u)
         if score is not None:
             local_results.append((v, u, score))
+        i += 1
     local_results.sort(key=lambda x: x[2], reverse=True)
     results[index] = local_results[:topk]
     print("Thread {} finished: {:f}".format(index, time.time()))
+    sys.stdout.flush()
 
 def get_node_labels(driver):
     with driver.session() as session:
@@ -78,9 +86,8 @@ def single_run():
 
     print('Looking for candidate vertices')
     print("Building candidate pairs start: {:f} sec".format(time.time()))
+    sys.stdout.flush()
     friends = query_vertices(driver, min_degree=args.min_degree)
-
-    #print(friends.keys())
 
     print('Building candidate pairs')
     queries = []
@@ -93,6 +100,7 @@ def single_run():
 
     print("Building candidate pairs finished: {:f} sec".format(time.time()))
     print("Candidate pairs: {}".format(len(queries)))
+    sys.stdout.flush()
 
     cores = multiprocessing.cpu_count()
     results = [[] for _ in range(cores)]
@@ -116,6 +124,7 @@ def single_run():
     all_results.sort(key=lambda x: x[2], reverse=True)
     print("Merged all results done: {:f} sec".format(time.time()))
     print (all_results[:topk])
+    sys.stdout.flush()
 
     end=time.time()
 
