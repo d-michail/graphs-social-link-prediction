@@ -124,6 +124,8 @@ public class LoadAndPredictSparseGraphApp {
 			minDegreeVertices.add(s);
 		}
 		System.out.println("Found " + minDegreeVertices.size() + " vertices with degree >= " + minDegree);
+		
+		System.out.println(minDegreeVertices);
 
 		List<Pair<Integer, Integer>> queries = new ArrayList<>();
 		for (Integer s : minDegreeVertices) {

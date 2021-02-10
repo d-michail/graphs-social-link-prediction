@@ -22,6 +22,7 @@ def main(ifilename, ofilename, renumber=False):
 
     next_node = 0
     nodes = {}
+    edges= set()
 
     with gzip.open(ifilename, "rt") as gzin, open(ofilename, "wt") as gzout:
         for line in gzin:
@@ -50,7 +51,10 @@ def main(ifilename, ofilename, renumber=False):
                     target = next_node
                     next_node += 1
 
-            gzout.write("{} {}\n".format(source, target))
+            e = (source, target)
+            if e not in edges: 
+                edges.add(e)
+                gzout.write("{} {}\n".format(source, target))
 
     if renumber:
         renumber_filename = "renumber.txt"
