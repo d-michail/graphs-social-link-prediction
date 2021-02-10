@@ -164,7 +164,9 @@ public class PredictWebGraphApp {
 			}
 
 			result.sort(Comparator.comparing((Triple<Long, Long, Double> t) -> t.getThird()).reversed());
-			result = result.subList(0, topK);
+			if (result.size() > topK) { 
+				result = result.subList(0, topK);
+			}
 			
 			if (renumber.size() > 0) {
 				result = result.stream()

@@ -125,7 +125,7 @@ public class LoadAndPredictSparseGraphApp {
 		}
 		System.out.println("Found " + minDegreeVertices.size() + " vertices with degree >= " + minDegree);
 		
-		System.out.println(minDegreeVertices);
+		//System.out.println(minDegreeVertices);
 
 		List<Pair<Integer, Integer>> queries = new ArrayList<>();
 		for (Integer s : minDegreeVertices) {
@@ -217,7 +217,9 @@ public class LoadAndPredictSparseGraphApp {
 			}
 
 			result.sort(Comparator.comparing((Triple<Integer, Integer, Double> t) -> t.getThird()).reversed());
-			result = result.subList(0, topK);
+			if (result.size() > topK) { 
+				result = result.subList(0, topK);
+			}
 
 			// System.out.println("Thread " + index + " found: " + result);
 
