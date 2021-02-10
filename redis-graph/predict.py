@@ -54,12 +54,12 @@ def get_degree(rg, v):
     raise ValueError("Failed to locate vertex: {}".format(v))
 
 
-def query_vertices(rg, min_degree, max_degree):
+def query_vertices(rg, min_degree):
     """
     Find all vertices with a minimum degree
     """
-    query = "MATCH (m1:Member)-[:Friend]->(m2:Member) WITH m1, count(m2) as degree, collect(m2) as friends  WHERE degree >= {} AND degree <= {} RETURN m1, degree, friends".format(
-        min_degree, max_degree
+    query = "MATCH (m1:Member)-[:Friend]->(m2:Member) WITH m1, count(m2) as degree, collect(m2) as friends  WHERE degree >= {} RETURN m1, degree, friends".format(
+        min_degree
     )
     result = rg.query(query)
 
@@ -70,6 +70,9 @@ def query_vertices(rg, min_degree, max_degree):
         name = member.properties["name"]
         degrees[name] = member_degree
         friends[name] = list(map(lambda x: x.properties["name"], member_friends))
+
+    print("Found {} vertices with degree >= {}".format(len(degrees), min_degree))
+    sys.stdout.flush()
 
     return friends, degrees
 
@@ -94,9 +97,9 @@ def single_run(rg):
     print(rg.propertyKeys())
 
     print('Looking for candidate vertices')
-    print('Using minimum and maximum degrees: {} and {}'.format(args.min_degree, args.max_degree))
+    print('Using minimum degree: {}'.format(args.min_degree))
     print("Building candidate pairs start: {:f} sec".format(time.time()))
-    friends, degrees = query_vertices(rg, min_degree=args.min_degree, max_degree=args.max_degree)
+    friends, degrees = query_vertices(rg, min_degree=args.min_degree)
 
     print('Building candidate pairs')
     queries = []
@@ -158,7 +161,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predict")
     parser.add_argument('--mindegree', metavar='INT', type=int, default=100, dest='min_degree', help='Minimum degree')
-    parser.add_argument('--maxdegree', metavar='INT', type=int, default=200, dest='max_degree', help='Maximum degree')
     parser.add_argument('--repeat', metavar='INT', type=int, default=10, dest='repeat', help='How many times to repeat the experiment')
 
     args = parser.parse_args()

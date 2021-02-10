@@ -28,6 +28,7 @@ def main(ifilename):
     start=time.time()
     print("Preprocess start: {:f} sec".format(start))
     nodes = set()
+    edges = set()
 
     with gzip.open(ifilename, "rt") as gzin, open(nodes_csv, "wt") as nodesout, open(
         edges_csv, "wt"
@@ -49,7 +50,11 @@ def main(ifilename):
                     if target not in nodes:
                         nodesout.write("{}, \"{}\"\n".format(int(target), target))
                         nodes.add(target)
-                    edgesout.write("{}, {}\n".format(int(source), int(target)))
+
+                    e = (source, target)
+                    if e not in edges: 
+                        edges.add(e)
+                        edgesout.write("{}, {}\n".format(int(source), int(target)))
                 except:
                     print("Failed to parse line: {}".format(line))
 
