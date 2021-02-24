@@ -45,7 +45,8 @@ public class LoadAndPredictSparseGraphApp {
 		try {
 			List<Pair<Integer, Integer>> edges = new ArrayList<>();
 			int maxVertex = -1;
-			System.out.println("Starting graph loading: " + System.currentTimeMillis() + " ms");
+			long graphLoadStart = System.currentTimeMillis();
+			System.out.println("Starting graph loading: " + graphLoadStart + " ms");
 			InputStream fileStream = new FileInputStream(inputFile);
 
 			BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream));
@@ -66,7 +67,9 @@ public class LoadAndPredictSparseGraphApp {
 			reader.close();
 
 			SparseIntDirectedGraph graph = new SparseIntDirectedGraph(maxVertex + 1, edges);
-			System.out.println("Finished graph loading: " + System.currentTimeMillis() + " ms");
+			long graphLoadEnd = System.currentTimeMillis();
+			System.out.println("Finished graph loading: " + graphLoadEnd + " ms");
+			System.out.println("Loading took: " + (graphLoadEnd-graphLoadStart) + " (ms)");
 
 			System.out.println("Graph contains " + graph.vertexSet().size() + " vertices");
 			System.out.println("Graph contains " + graph.edgeSet().size() + " edges");
@@ -168,7 +171,9 @@ public class LoadAndPredictSparseGraphApp {
 			finalResults.addAll(responses.get(i));
 		}
 		finalResults.sort(Comparator.comparing((Triple<Integer, Integer, Double> t) -> t.getThird()).reversed());
-		finalResults = finalResults.subList(0, topK);
+		if (finalResults.size() > topK) { 
+			finalResults = finalResults.subList(0, topK);
+		}
 
 		if (renumber.size() > 0) {
 			finalResults = finalResults.stream()

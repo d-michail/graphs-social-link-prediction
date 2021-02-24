@@ -18,7 +18,8 @@ def main(ifilename, ofilename, renumber=False):
 
     print("Reading from gzip input file: {}".format(ifilename))
     print("Writing to gzip output file: {}".format(ofilename))
-    print("Preprocess start: {:f} sec".format(time.time()))
+    start = time.time()
+    print("Preprocess start: {:f} sec".format(start))
 
     next_node = 0
     nodes = {}
@@ -62,8 +63,10 @@ def main(ifilename, ofilename, renumber=False):
         with open(renumber_filename, 'wt') as out: 
             for k, v in nodes.items():
                 out.write("{} {}\n".format(k, v))
-
-    print("Preprocess finished: {:f} sec".format(time.time()))            
+ 
+    end = time.time()
+    print("Preprocess finished: {:f} sec".format(end))
+    print("Taken: {:f} sec".format(end-start))
 
 def is_valid_input_file(parser, arg):
     if not os.path.exists(arg):
