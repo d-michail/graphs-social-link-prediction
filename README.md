@@ -1,2 +1,4 @@
 # graphs-social-link-prediction
-Graph databases link prediction experiments
+
+Code for chapter about graph databases, the link prediction prespective.
+
